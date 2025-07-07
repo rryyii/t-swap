@@ -1,0 +1,76 @@
+{% extends '../base.html' %}
+
+{% block content %}
+  <div class="d-flex flex-column align-items-center main-content">
+    <p>{{ channel }}</p>
+    <di class="m-3">
+      {% if responses %}
+        <div>
+          <button id="send_all" class="btn btn-primary">Show All</button>
+          <a id="send_randomly" type="button" class="btn btn-primary" href={% url 'send-random' channel.channel_id %}>Send Responses Randomly</a>
+        </div>
+      {% endif %}
+    </div>
+    <div class="d-flex flex-row justify-content-center flex-wrap gap-3" id="cards">
+      {% if responses %}
+        {% for response in responses %}
+            <div class="card auto mb-3">
+              <div class="card-body card-body-c">
+                <div class="card-text">
+                  <p>{{ response.response_content }}</p>
+                </div>
+              </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+{% block inline_javascript %}
+  <script>
+    const chatSocket = new WebSocket('wss://' + window.location.host + '/ws/swap/channel/' + {{ channel.channel_id }} + '/')
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly ', e)
+    }
+
+    chatSocket.onopen = function (e) {
+        console.log('Chat socket opened')
+    }
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data)
+        if (data.message_type == "response") {
+          const cards = document.getElementById("cards")
+          const newCard = document.createElement("div")
+          newCard.classList.add("card")
+          newCard.classList.add("mb-3")
+
+          const newCardBody = document.createElement("div")
+          newCardBody.classList.add("card-body")
+          newCardBody.classList.add("card-body-c")
+          const newCardContent = document.createElement("div")
+          const response = document.createElement("p")
+
+          response.textContent = data.message
+          newCardContent.appendChild(response)
+          newCardContent.classList.add("card-content")
+          newCardBody.appendChild(newCardContent)
+          newCard.appendChild(newCardBody)
+          cards.appendChild(newCard)
+        }
+        
+    }
+    document.getElementById("send_all").addEventListener("click", function () {
+      fetch("{% url 'show-all' channel.channel_id %}")
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error("Failed to trigger show-all")
+          }
+        })
+        .catch((err) => {
+          console.error(err)
+        })
+    })
+    
+  </script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends '../base.html' %}
+
+{% block content %}
+    <div class="d-flex flex-column justify-content-center gap-3 main-content">
+      <div>
+        <h1>Manage Channels</h1>
+        <a class="btn btn-success" href="{% url 'create-channel' %}">Create channel</a>
+      </div>
+      <div>
+        <h1>Saved Posts</h1>
+        <ul class="list-group">
+          {% if user.saved_posts %}
+            {% for post in user.saved_posts.all %}
+              <li class="list-group-item">
+                <a href="{% url 'post-archive-detail' post.post_id %}">{{ post }}</a>
+              </li>
+            {% endfor %}
+          {% else %}
+            <h2>No saved posts.</h2>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends '../base.html' %}
+{% block content %}
+  <div class="d-flex flex-row gap-5 justify-content-center align-items-start main-content post-d">
+    {% if user.user_type == 'facilitator' %}
+      {% block modal %}
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-body">
+                <form id="prompt-form" method="POST" action="">
+                  {% csrf_token %}
+                  {{ form.as_p }}
+                  <input type="hidden" name="form_type" value="prompt" />
+                </form>
+              </div>
+              <div class="modal-footer">
+                <input class="btn btn-primary" id="chat-prompt-submit" type="submit" value="Send Prompt" />
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endblock %}
+    {% endif %}
+    {% if post %}
+      <div id="post-content" class="card">
+        <div id="post-body" class="card-header">
+          <div class="d-flex flex-row justify-content-start align-items-center p-2 main-content">
+            <h1>Post</h1>
+            {% if user.user_type == 'facilitator' %}
+              <div class="dropdown p-2">
+                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Menu</a>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a class="btn btn-secondary dropdown-item" href="{% url 'edit-channel' channel.channel_id %}">Edit channel</a>
+                  </li>
+                  <li>
+                    <a class="btn btn-secondary dropdown-item" href="{% url 'delete-channel' channel.channel_id %}">Delete channel</a>
+                  </li>
+                </ul>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body card-prompt">
+          <h1>{{ post.prompt }}</h1>
+          {% if user.user_type == 'facilitator' %}
+            <h2>Post ID: {{ post_id }}</h2>
+            <p>Posted at: {{ post_date }}</p>
+            <p>Created by facilitator: {{ facilitator }}</p>
+            <div class="d-flex flex-row flex-wrap gap-3">
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Create Prompt</button>
+              <a class="btn btn-primary" href="{% url 'manage-responses' channel.channel_id post.post_id %}">Manage responses</a>
+              <a class="btn btn-primary" href="{% url 'save-post' post_id user.id %}">Save Post</a>
+
+              {% comment %} <a class="btn btn-primary" href="">Open Submissions</a>
+              <a class="btn btn-primary" href="{% url 'close-submissions' channel.channel_id %}">Close Submissions</a> {% endcomment %}
+            </div>
+          {% elif user.user_type == 'participant' %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Respond</button>
+            <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-body">
+                    <form id="response-form" method="POST" action="">
+                      {% csrf_token %}
+                      {{ response_form.as_p }}
+                      <input type="hidden" name="form_type" value="response" />
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <input class="btn btn-primary" id="chat-response-submit" type="submit" value="Send Response" />
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+    <div>
+      <div id="response-body" class="d-flex flex-column flex-wrap card">
+        <div class="card-header">
+          <h1>Responses</h1>
+        </div>
+        <div id="response-card" class="card-body"></div>
+      </div>
+    </div>
+  </div>
+  {{ room_name|json_script:'room-name' }}
+{% endblock %}
+{% block inline_javascript %}
+  <script>
+    const roomName = JSON.parse(document.getElementById('room-name').textContent)
+    const chatSocket = new WebSocket('wss://' + window.location.host + '/ws/swap/channel/' + roomName + '/')
+    chatSocket.onmessage = function (e) {
+      const data = JSON.parse(e.data)
+      const area = document.getElementById('response-body')
+    
+      if (data.form_type == 'prompt_form') {
+        const postContent = document.getElementById('post-body')
+        if (postContent) {
+          postContent.innerHTML = ''
+          area.innerHTML = ''
+          const newPost = document.createElement('h1')
+          newPost.innerText = data.message
+          postContent.appendChild(newPost)
+        }
+      }
+      if (data.message_type == 'show_all_responses') {
+        const responses = data.responses
+        const cardResponse = document.getElementById('response-card')
+        for (const response of responses) {
+          const content = document.createElement('div')
+          content.classList.add('received-response')
+          content.classList.add('card')
+          content.innerText = response.response_content
+          cardResponse.appendChild(content)
+        }
+      }
+      if (data.message_type == 'random_response') {
+        const responses = data.response_content
+        const cardResponse = document.getElementById('response-card')
+        const content = document.createElement('div')
+        content.classList.add('received-response')
+        content.classList.add('card')
+        content.innerText = responses
+        cardResponse.appendChild(content)
+      }
+    }
+    
+    chatSocket.onclose = function (e) {
+      console.error('Chat socket closed unexpectedly')
+    }
+    
+    chatSocket.onopen = function (e) {
+      console.log('Chat socket successfully opened')
+    }
+    
+    if (document.querySelector('#chat-prompt-submit') != null) {
+      document.querySelector('#chat-prompt-submit').onclick = function (e) {
+        e.preventDefault()
+        const messageInputDom = document.querySelector('#id_prompt')
+        const message = messageInputDom.value
+    
+        chatSocket.send(
+          JSON.stringify({
+            message: message,
+            message_type: 'prompt'
+          })
+        )
+    
+        document.querySelector('#prompt-form').submit()
+      }
+    }
+    
+    if (document.querySelector('#chat-response-submit') != null) {
+      document.querySelector('#chat-response-submit').onclick = function (e) {
+        e.preventDefault()
+        const messageInputDom = document.querySelector('#id_response_content')
+        const message = messageInputDom.value
+    
+        chatSocket.send(
+          JSON.stringify({
+            message: message,
+            message_type: 'response'
+          })
+        )
+    
+        document.querySelector('#response-form').submit()
+      }
+    }
+  </script>
+{% endblock %}

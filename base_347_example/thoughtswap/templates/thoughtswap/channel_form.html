@@ -1,0 +1,25 @@
+{% extends '../base.html' %}
+
+{% block content %}
+  <div class="d-flex justify-content-center">
+    <div id="channel-form">
+      <form method="POST">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row">
+          <div class="fieldWrapper col">
+            {{ form.channel_name.errors }}
+            <label class="form-label" for="{{ form.channel_name.id_for_label }}">Channel Name</label>
+            {{ form.channel_name }}
+            <div class="fieldWrapper">
+              {{ form.channel_code.errors }}
+              <label class="form-label" for="{{ form.channel_code.id_for_label }}">Channel Code</label>
+              {{ form.channel_code }}
+            </div>
+          </div>
+        </div>
+        <input class="btn btn-primary" type="submit" value="Submit" />
+      </form>
+    </div>
+  </div>
+{% endblock %}

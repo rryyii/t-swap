@@ -1,0 +1,9 @@
+{% extends '../base.html' %}
+{% block content %}
+  <p>Are you sure you want to delete the channel?</p>
+
+  <form action="" method="POST">
+    {% csrf_token %}
+    <input class="btn btn-danger" type="submit" action="" value="Yes, delete." />
+  </form>
+{% endblock %}

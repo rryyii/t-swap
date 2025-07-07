@@ -1,0 +1,21 @@
+# PRECAUTION: avoid production dependencies that aren't in development
+
+-r base.txt
+
+gunicorn==23.0.0  # https://github.com/benoitc/gunicorn
+psycopg[c]==3.2.4  # https://github.com/psycopg/psycopg
+sentry-sdk==2.20.0  # https://github.com/getsentry/sentry-python
+
+# Django
+# -----------------------------------------------------------------------------
+django-storages[azure]==1.14.4  # https://github.com/jschneier/django-storages
+django-anymail[mailgun]==12.0  # https://github.com/anymail/django-anymail
+
+
+# DigitalOcean
+dj-database-url==2.3.0
+django-debug-toolbar==5.0.1  # https://github.com/jazzband/django-debug-toolbar
+django-extensions==3.2.3  # https://github.com/django-extensions/django-extensions
+
+uvicorn[standard]==0.34.0
+uvicorn-worker==0.3.0

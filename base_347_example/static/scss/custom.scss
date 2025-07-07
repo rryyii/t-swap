@@ -1,0 +1,142 @@
+@use "../../../node_modules/bootstrap/scss/bootstrap";
+
+:root {
+    --primary-bg: #0a0908;
+    --secondary-bg: #22333b;
+    --tertiary-bg: #0d1321;
+    --text-color: #eae0d5;
+}
+
+#channel-form {
+    background-color: var(--text-color);
+    color: var(--primary-bg);
+    padding: 1rem;
+    border-radius: .25rem;
+    display: flex;
+    justify-content: center;
+    width: 25vw;
+
+}
+
+
+.about-header {
+    background-color: var(--text-color);
+    color: var(--primary-bg);
+    padding: 1rem;
+    border-radius: .25rem;
+}
+
+.about-description, .about-facilitator {
+    margin: 1rem;
+}
+
+.bg-primary {
+    background-color: var(--secondary-bg) !important;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--primary-bg);
+    --bs-btn-border-color: var(--text-color);
+    --bs-btn-hover-bg: #354F5B;
+    --bs-btn-hover-border-color: var(--text-color);
+}
+
+#post-responses {
+    padding-bottom: 2rem;
+}
+
+.channel-info {
+    font-size: 1rem;
+}
+
+.list-channel {
+    font-size: .5rem;
+}
+
+// Navigation custom styles
+.navbar {
+    min-height: 10vh;
+    padding: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.navbar-nav {
+    --bs-nav-link-color: var(--text-color);
+    --bs-nav-link-hover-color: white;
+}
+
+.navbar-brand {
+    color: var(--text-color);
+    --bs-navbar-brand-hover-color: white;
+}
+.nav-link {
+    border-top: .1rem solid transparent;
+}
+
+.nav-link:hover {
+    border-top-color: black;
+}
+
+
+body {
+    background-color: var(--secondary-bg);
+}
+
+.main-content {
+    color: white;
+}
+
+#cards {
+    background-color: var(--primary-bg);
+    padding: 1rem;
+    border-radius: .25rem;
+}
+
+.card-body-c {
+    background-color: var(--tertiary-bg);
+    color: white;
+}
+
+.card-header > h1 {
+
+    font-size: 1.25rem;
+}
+
+.card-prompt > h1 {
+    font-size: 1rem;
+}
+
+.card {
+    overflow: auto;
+    width: 25rem !important;
+}
+
+.modal-content {
+    background-color: var(--tertiary-bg);
+    color: white;
+}
+
+// Participant received responses
+.received-response {
+    background-color: #1B2846;
+    border: .1rem solid black;
+    color: white;
+    max-width: 20vw;
+    max-height: 20vh;
+    font-size: 1rem;
+    padding: 1rem;
+}
+
+#response-body {
+    background-color: var(--tertiary-bg);
+    border-radius: .25rem;
+    width: 30vw;
+    max-width: 30vw;
+    padding: 2rem;
+    color: white;
+}
+
+#post-content {
+    background-color:var(--tertiary-bg);
+    color: white;
+}

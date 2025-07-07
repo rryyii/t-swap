@@ -1,0 +1,22 @@
+{% extends '../base.html' %}
+{% block content %}
+  <div class="post-content container main-content">
+    <h1>{{ post.prompt }}</h1>
+    <h2>Post ID: {{ post.post_id }}</h2>
+    <p>Posted at {{ post.post_date }}</p>
+    <p>Created by {{ post.facilitator }}</p>
+    <a class="btn btn-danger" href="{% url 'delete-saved-post' post.post_id user.id %}">Delete</a>
+    <div id="post-responses">
+      <h1>Responses:</h1>
+      {% if responses %}
+        <ul class="list-group">
+          {% for response in responses %}
+            <li class="list-group-item">{{ response.participant }}: {{ response.response_content }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No responses</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

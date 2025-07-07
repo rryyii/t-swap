@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block main %}
+    {% if user.is_authenticated %}
+        <h1>Welcome back {{user.username}}!</h1>
+    {% endif %}
+    {% if perms.placeholder.manage_channel %}
+        <a href="{% url 'manage-channels' %}">Manage Channels</a>
+    {% endif %}
+    <h1>Currently {{current_channels_count}} Channels Available</h1>
+    {% for channel in current_channels %}
+    <li>
+        <a href="{{channel.get_absolute_url}}">{{channel.channel_name}} made at {{channel.channel_date}} by {{channel.creator.username}}</a>
+    </li>
+    {% endfor %}
+{% endblock %}
