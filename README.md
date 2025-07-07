@@ -1,4 +1,4 @@
 # Thoughtswap
 
-# Uses provided cookie cutter for django
+# Uses provided cookie cutter using Django from Micheal Stewart
 
