@@ -39,6 +39,7 @@ urlpatterns += [
 urlpatterns += [
     path("channel/", views.index, name="index"),
     path("channel/<int:channel_id>/", views.room, name="room"),
+    path("channel/<int:channel_id>/join/", views.join_channel, name="join-channel"),
     path("channel/create/", views.post_create, name="create-post"),
     path(
         "channel/manage/<int:channel_id>/<int:post_id>",
@@ -50,7 +51,7 @@ urlpatterns += [
         views.save_post,
         name="save-post",
     ),
-    path("channel/<int:channel_id>", views.show_all, name="show-all"),
+    path("channel/show-all/<int:channel_id>", views.show_all, name="show-all"),
     path("channel/send-random/<int:channel_id>", views.send_random, name="send-random"),
     path(
         "channel/close/<int:channel_id>",

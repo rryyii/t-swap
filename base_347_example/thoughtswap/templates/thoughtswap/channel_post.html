@@ -1,7 +1,7 @@
 {% extends '../base.html' %}
 {% block content %}
   <div class="d-flex flex-row gap-5 justify-content-center align-items-start main-content post-d">
-    {% if user.user_type == 'facilitator' %}
+    {% if is_owner %}
       {% block modal %}
         <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false">
           <div class="modal-dialog">
@@ -27,7 +27,7 @@
         <div id="post-body" class="card-header">
           <div class="d-flex flex-row justify-content-start align-items-center p-2 main-content">
             <h1>Post</h1>
-            {% if user.user_type == 'facilitator' %}
+            {% if is_owner %}
               <div class="dropdown p-2">
                 <a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Menu</a>
                 <ul class="dropdown-menu">
@@ -44,7 +44,7 @@
         </div>
         <div class="card-body card-prompt">
           <h1>{{ post.prompt }}</h1>
-          {% if user.user_type == 'facilitator' %}
+          {% if is_owner %}
             <h2>Post ID: {{ post_id }}</h2>
             <p>Posted at: {{ post_date }}</p>
             <p>Created by facilitator: {{ facilitator }}</p>
@@ -52,10 +52,14 @@
               <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Create Prompt</button>
               <a class="btn btn-primary" href="{% url 'manage-responses' channel.channel_id post.post_id %}">Manage responses</a>
               <a class="btn btn-primary" href="{% url 'save-post' post_id user.id %}">Save Post</a>
-
-              {% comment %} <a class="btn btn-primary" href="">Open Submissions</a>
-              <a class="btn btn-primary" href="{% url 'close-submissions' channel.channel_id %}">Close Submissions</a> {% endcomment %}
+              {% if submissions_open %}
+                <a class="btn btn-primary" href="{% url 'close-submissions' channel.channel_id %}">Close Submissions</a>
+              {% else %}
+                <span class="align-self-center">Submissions closed</span>
+              {% endif %}
             </div>
+          {% elif user.user_type == 'participant' and not submissions_open %}
+            <p>Submissions are closed for this prompt.</p>
           {% elif user.user_type == 'participant' %}
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Respond</button>
             <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -93,7 +97,8 @@
 {% block inline_javascript %}
   <script>
     const roomName = JSON.parse(document.getElementById('room-name').textContent)
-    const chatSocket = new WebSocket('wss://' + window.location.host + '/ws/swap/channel/' + roomName + '/')
+    const wsScheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
+    const chatSocket = new WebSocket(wsScheme + window.location.host + '/ws/swap/channel/' + roomName + '/')
     chatSocket.onmessage = function (e) {
       const data = JSON.parse(e.data)
       const area = document.getElementById('response-body')
@@ -138,19 +143,10 @@
       console.log('Chat socket successfully opened')
     }
     
+    // The room view saves the submission and broadcasts it, so the buttons only submit their forms.
     if (document.querySelector('#chat-prompt-submit') != null) {
       document.querySelector('#chat-prompt-submit').onclick = function (e) {
         e.preventDefault()
-        const messageInputDom = document.querySelector('#id_prompt')
-        const message = messageInputDom.value
-    
-        chatSocket.send(
-          JSON.stringify({
-            message: message,
-            message_type: 'prompt'
-          })
-        )
-    
         document.querySelector('#prompt-form').submit()
       }
     }
@@ -158,16 +154,6 @@
     if (document.querySelector('#chat-response-submit') != null) {
       document.querySelector('#chat-response-submit').onclick = function (e) {
         e.preventDefault()
-        const messageInputDom = document.querySelector('#id_response_content')
-        const message = messageInputDom.value
-    
-        chatSocket.send(
-          JSON.stringify({
-            message: message,
-            message_type: 'response'
-          })
-        )
-    
         document.querySelector('#response-form').submit()
       }
     }

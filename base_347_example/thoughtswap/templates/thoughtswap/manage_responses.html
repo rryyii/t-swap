@@ -3,7 +3,7 @@
 {% block content %}
   <div class="d-flex flex-column align-items-center main-content">
     <p>{{ channel }}</p>
-    <di class="m-3">
+    <div class="m-3">
       {% if responses %}
         <div>
           <button id="send_all" class="btn btn-primary">Show All</button>
@@ -28,7 +28,8 @@
 {% endblock %}
 {% block inline_javascript %}
   <script>
-    const chatSocket = new WebSocket('wss://' + window.location.host + '/ws/swap/channel/' + {{ channel.channel_id }} + '/')
+    const wsScheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
+    const chatSocket = new WebSocket(wsScheme + window.location.host + '/ws/swap/channel/' + {{ channel.channel_id }} + '/')
     chatSocket.onclose = function (e) {
         console.error('Chat socket closed unexpectedly ', e)
     }
@@ -60,7 +61,7 @@
         }
         
     }
-    document.getElementById("send_all").addEventListener("click", function () {
+    document.getElementById("send_all")?.addEventListener("click", function () {
       fetch("{% url 'show-all' channel.channel_id %}")
         .then((res) => {
           if (!res.ok) {

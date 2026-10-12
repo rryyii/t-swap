@@ -276,3 +276,5 @@ base_347_example/media/
 
 # don't commit .sqlite bc it has my canvas keys in it now.
 *.sqlite*
+# Django log file
+base_347_example/logs/django.log

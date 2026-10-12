@@ -1,6 +1,23 @@
 import json
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.cache import cache
+
+from .models import Channel
+from .views import JOINED_CHANNELS_SESSION_KEY
+
+
+@database_sync_to_async
+def can_join_room(user, session, room_name):
+    """
+    Mirrors views.can_access_channel: the creator, or a user who joined with the channel code.
+    """
+    channel = Channel.objects.filter(pk=room_name).first()
+    if channel is None:
+        return False
+    if channel.creator_id == user.pk:
+        return True
+    return channel.pk in session.get(JOINED_CHANNELS_SESSION_KEY, [])
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -18,6 +35,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         self.user_group_name = f"user_{self.user_id}"
         self.room_group_name = f"chat_{self.room_name}"
+
+        user = self.scope["user"]
+        if not user.is_authenticated or not await can_join_room(
+            user, self.scope.get("session", {}), self.room_name
+        ):
+            await self.close()
+            return
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.channel_layer.group_add(self.user_group_name, self.channel_name)
@@ -40,43 +64,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         """
-        A basic handler function that gets the message type and then delegates 
-        the work to be done, then sends a message to that room.
+        Messages sent by clients are ignored. Prompts and responses are saved and validated
+        by the room view, which then broadcasts them to the group.
         """
-        text_data_json = json.loads(text_data)
-        message = text_data_json.get("message", "")
-        message_type = text_data_json.get("message_type")
-
-        if message_type == "prompt":
-            post_id = text_data_json.get("post_id")
-            post_date = text_data_json.get("post_date")
-            facilitator = text_data_json.get("facilitator")
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "chat_message",
-                    "message": message,
-                    "post_id": post_id,
-                    "post_date": post_date,
-                    "facilitator": facilitator,
-                },
-            )
-        elif message_type == "response":
-            response_id = text_data_json.get("response_id")
-            response_content = text_data_json.get("response_content")
-            participant = text_data_json.get("participant")
-
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "response_message",
-                    "message": message,
-                    "message_type": message_type,
-                    "response_id": response_id,
-                    "response_content": response_content,
-                    "participant": participant,
-                },
-            )
 
     async def chat_message(self, event):
         """
@@ -121,7 +111,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message_type = event["message_type"]
         response_id = event["response_id"]
         response_content = event["response_content"]
-        participant = event["participant"]
 
         await self.send(
             text_data=json.dumps(
@@ -130,7 +119,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "message_type": message_type,
                     "response_id": response_id,
                     "response_content": response_content,
-                    "participant": participant,
                 }
             )
         )

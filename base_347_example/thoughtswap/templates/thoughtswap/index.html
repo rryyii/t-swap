@@ -6,10 +6,11 @@
         {% for channel in current_channels %}
           <li class="list-group-item">
             <div class="d-flex gap-3 list-channel">
-              <div>
-                <button type="button" class="join-channel btn btn-primary" data-channel-id="{{ channel.channel_id }}" data-channel-code="{{ channel.channel_code }}">Join {{ channel.channel_name }}</button>
-                <input id="channel-code-{{ channel.channel_id }}" maxlength="10" type="text" placeholder="Channel Code" />
-              </div>
+              <form method="POST" action="{% url 'join-channel' channel.channel_id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Join {{ channel.channel_name }}</button>
+                <input name="channel_code" maxlength="10" type="text" placeholder="Channel Code" />
+              </form>
               <div class="channel-info">
                 <span>{{ channel.channel_date }}</span>
                 <br />
@@ -23,18 +24,4 @@
       <h2>There are currently no active channels.</h2>
     {% endif %}
   </div>
-  {% block inline_javascript %}
-    <script>
-      document.querySelectorAll('.join-channel').forEach((button) => {
-        button.addEventListener('click', function () {
-          const channelId = this.getAttribute('data-channel-id')
-          const channelCode = this.getAttribute('data-channel-code')
-          const input = document.getElementById(`channel-code-${channelId}`)
-          if (input.value == channelCode) {
-            window.location.href = `/swap/channel/${channelId}/`
-          }
-        })
-      })
-    </script>
-  {% endblock %}
 {% endblock %}

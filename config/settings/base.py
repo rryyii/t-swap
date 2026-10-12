@@ -272,8 +272,7 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
-print("sys.argv[1]", sys.argv[1])
-if sys.argv[1] != "collectstatic":
+if sys.argv[1:2] != ["collectstatic"]:
     LOGGING["handlers"]["file"] = {
         "level": "DEBUG",
         "class": "logging.FileHandler",

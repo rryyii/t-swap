@@ -1,4 +1,6 @@
 # ruff: noqa: E501
+import os
+
 from .base import *  # noqa: F403
 from .base import INSTALLED_APPS
 from .base import MIDDLEWARE
@@ -63,6 +65,13 @@ INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
 # ------------------------------------------------------------------------------
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 INSTALLED_APPS += ["django_extensions"]
+
+# Channels
+# ------------------------------------------------------------------------------
+# Without a REDIS_URL, use the in-memory channel layer so runserver works without Redis.
+# It only works within a single process, which is all runserver uses.
+if "REDIS_URL" not in os.environ:
+    CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
 # Your stuff...
 # ------------------------------------------------------------------------------

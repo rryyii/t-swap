@@ -11,7 +11,7 @@
       {% if responses %}
         <ul class="list-group">
           {% for response in responses %}
-            <li class="list-group-item">{{ response.participant }}: {{ response.response_content }}</li>
+            <li class="list-group-item">{{ response.response_content }}</li>
           {% endfor %}
         </ul>
       {% else %}
